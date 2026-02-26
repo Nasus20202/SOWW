@@ -1,1 +1,1 @@
-# SOWW
+# Systemy obliczeniowe wysokiej wydajności 

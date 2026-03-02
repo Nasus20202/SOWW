@@ -24,12 +24,12 @@ bool isPrime(long n)
   return true;
 }
 
-long countTwinPrimes(long start, long end)
+long countTwinPrimes(long start, long end, long limit)
 {
   long count = 0;
   if (start % 2 == 0)
     start++;
-  bool prevIsPrime = isPrime(start - 2);
+  bool prevIsPrime = false;
   for (long i = start; i < end; i += 2)
   {
     if (isPrime(i))
@@ -42,6 +42,13 @@ long countTwinPrimes(long start, long end)
     {
       prevIsPrime = false;
     }
+  }
+
+  if (prevIsPrime)
+  {
+    long next = (end % 2 == 0) ? end + 1 : end;
+    if (next <= limit && isPrime(next))
+      count++;
   }
   return count;
 }
@@ -80,6 +87,11 @@ void receiveRange(long range[2])
 void sendResult(long result)
 {
   MPI_Send(&result, 1, MPI_LONG, 0, TAG_RESULT, MPI_COMM_WORLD);
+}
+
+void receiveFinish()
+{
+  MPI_Recv(NULL, 0, MPI_LONG, 0, TAG_FINISH, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 }
 #pragma endregion
 
@@ -124,25 +136,31 @@ void master(long arraySize, int procCount)
   for (int i = 1; i <= activeSlaves; i++)
   {
     long resultTemp;
-    receiveResult(i, &resultTemp, MPI_STATUS_IGNORE);
+    MPI_Status status;
+    receiveResult(MPI_ANY_SOURCE, &resultTemp, &status);
     result += resultTemp;
-    shutdownSlave(i);
+    shutdownSlave(status.MPI_SOURCE);
   }
 
-  printf("twin primes up to %ld: %ld\n", arraySize, result);
+  printf("Twin primes up to %ld: %ld\n", arraySize, result);
 }
 
-void slave(int rank)
+void slave(long arraySize, int rank)
 {
   MPI_Status status;
-  while (status.MPI_TAG != TAG_FINISH)
+  while (true)
   {
     probeMaster(&status);
+    if (status.MPI_TAG == TAG_FINISH)
+    {
+      receiveFinish();
+      break;
+    }
     if (status.MPI_TAG == TAG_RANGE)
     {
       long range[2];
       receiveRange(range);
-      long result = countTwinPrimes(range[0], range[1]);
+      long result = countTwinPrimes(range[0], range[1], arraySize);
       sendResult(result);
     }
   }
@@ -173,7 +191,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    slave(rank);
+    slave(inputArgument, rank);
   }
 
   MPI_Finalize();

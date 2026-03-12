@@ -45,8 +45,7 @@ long countTwinPrimes(long start, long end, long limit)
 
   if (prevIsPrime)
   {
-    long next = (end % 2 == 0) ? end + 1 : end;
-    if (next <= limit && isPrime(next))
+    if (end <= limit && isPrime(end))
       count++;
   }
   return count;

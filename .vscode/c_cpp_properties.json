@@ -5,7 +5,8 @@
       "includePath": [
         "${workspaceFolder}/**",
         "/usr/include/openmpi-x86_64",
-        "/usr/lib/x86_64-linux-gnu/openmpi/include"
+        "/usr/lib/x86_64-linux-gnu/openmpi/include",
+        "/usr/lib/clang/20/include"
       ],
       "defines": [],
       "compilerPath": "/usr/bin/clang",

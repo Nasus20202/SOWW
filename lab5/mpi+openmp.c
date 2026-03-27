@@ -57,7 +57,7 @@ void work(int rank, long start, long end, long limit)
   const long stepSize = 1000;
 
   long result = 0, localResult = 0;
-#pragma omp parallel for private(localResult) reduction(+ : result)
+#pragma omp parallel for schedule(dynamic, 1) private(localResult) reduction(+ : result)
   for (long i = start; i < end; i += stepSize)
   {
     long localStart = i;
